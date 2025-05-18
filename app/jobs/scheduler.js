@@ -5,7 +5,6 @@ const mailer = require('../clients/mailer');
 
 const CRON_HOURLY = '0 * * * *';
 const CRON_DAILY = '0 8 * * *';
-const CRON_TEST = '* * * * *';
 
 function buildEmailHTML(city, weather, unsubscribeLink) {
   return `
@@ -31,20 +30,23 @@ async function sendUpdateEmail(sub) {
   await mailer.sendMail(sub.email, subject, undefined, html);
 }
 
-// cron.schedule(CRON_HOURLY, async () => {
-//   const hourlySubs = await Subscription.findAll({ where: { confirmed: true, frequency: 'hourly' } });
-//   for (const sub of hourlySubs) await sendUpdateEmail(sub);
-// });
-
-// cron.schedule(CRON_DAILY, async () => {
-//   const dailySubs = await Subscription.findAll({ where: { confirmed: true, frequency: 'daily' } });
-//   for (const sub of dailySubs) await sendUpdateEmail(sub);
-// });
-
-cron.schedule(CRON_TEST, async () => {
-  const testSubs = await Subscription.findAll({ where: { confirmed: true } });
-  for (const sub of testSubs) {
-    console.log(`[TEST] Sending test update to ${sub.email}`);
-    await sendUpdateEmail(sub);
-  }
+cron.schedule(CRON_HOURLY, async () => {
+  const hourlySubs = await Subscription.findAll({ where: { confirmed: true, frequency: 'hourly' } });
+  for (const sub of hourlySubs) await sendUpdateEmail(sub);
 });
+
+cron.schedule(CRON_DAILY, async () => {
+  const dailySubs = await Subscription.findAll({ where: { confirmed: true, frequency: 'daily' } });
+  for (const sub of dailySubs) await sendUpdateEmail(sub);
+});
+
+const CRON_TEST = '* * * * *';
+// FOR TESTING ONLY
+// Uncomment the following lines to test the cron job every minute
+// cron.schedule(CRON_TEST, async () => {
+//   const testSubs = await Subscription.findAll({ where: { confirmed: true } });
+//   for (const sub of testSubs) {
+//     console.log(`[TEST] Sending test update to ${sub.email}`);
+//     await sendUpdateEmail(sub);
+//   }
+// });
