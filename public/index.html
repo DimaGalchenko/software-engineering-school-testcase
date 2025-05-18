@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Weather App</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      background-color: #f4f4f5;
+      color: #222;
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      margin-bottom: 2rem;
+    }
+    .tab-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .tab-button {
+      padding: 0.6rem 1.2rem;
+      background-color: #e4e4e7;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .tab-button.active {
+      background-color: #d1d1d6;
+    }
+    .tab-content {
+      display: none;
+      background: #ffffff;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.05);
+      width: 320px;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    label {
+      display: block;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+    input, select {
+      width: 100%;
+      padding: 0.6rem;
+      margin-top: 0.25rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #f9f9fa;
+    }
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 1rem;
+      background-color: #333;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    button:hover {
+      background-color: #111;
+    }
+    .message {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      text-align: center;
+      color: #444;
+    }
+  </style>
+</head>
+<body>
+  <h1>Weather Service</h1>
+
+  <div class="tab-buttons">
+    <button class="tab-button active" data-tab="weather">Check Weather</button>
+    <button class="tab-button" data-tab="subscribe">Subscribe</button>
+  </div>
+
+  <!-- Weather Tab -->
+  <div class="tab-content active" id="tab-weather">
+    <form id="weatherForm">
+      <label>City
+        <input type="text" name="weatherCity" required />
+      </label>
+      <button type="submit">Get Weather</button>
+    </form>
+    <div class="message" id="weatherMessage"></div>
+  </div>
+
+  <!-- Subscription Tab -->
+  <div class="tab-content" id="tab-subscribe">
+    <form id="subscribeForm">
+      <label>Email
+        <input type="email" name="email" required />
+      </label>
+      <label>City
+        <input type="text" name="city" required />
+      </label>
+      <label>Frequency
+        <select name="frequency">
+          <option value="hourly">Hourly</option>
+          <option value="daily">Daily</option>
+        </select>
+      </label>
+      <button type="submit">Subscribe</button>
+    </form>
+    <div class="message" id="subscribeMessage"></div>
+  </div>
+
+  <script>
+    document.querySelectorAll('.tab-button').forEach(button => {
+      button.addEventListener('click', () => {
+        document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+        button.classList.add('active');
+        document.getElementById(`tab-${button.dataset.tab}`).classList.add('active');
+      });
+    });
+
+    document.getElementById('weatherForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const city = e.target.weatherCity.value.trim();
+      const msg = document.getElementById('weatherMessage');
+      msg.textContent = 'Loading...';
+
+      try {
+        const res = await fetch(`/api/weather?city=${encodeURIComponent(city)}`);
+        const data = await res.json();
+
+        if (res.ok) {
+          msg.innerHTML = `🌡 Temp: ${data.temperature}°C<br>💧 Humidity: ${data.humidity}%<br>☁️ ${data.description}`;
+        } else {
+          msg.textContent = data.error || 'Could not get weather.';
+        }
+      } catch {
+        msg.textContent = 'Error fetching weather.';
+      }
+    });
+
+    document.getElementById('subscribeForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const payload = Object.fromEntries(formData.entries());
+      const msg = document.getElementById('subscribeMessage');
+      msg.textContent = 'Sending...';
+
+      try {
+        const res = await fetch('/api/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const result = await res.json();
+        msg.textContent = result.message || result.error || 'Something went wrong.';
+      } catch {
+        msg.textContent = 'Subscription failed.';
+      }
+    });
+  </script>
+</body>
+</html>
