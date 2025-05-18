@@ -1,3 +1,4 @@
+const { Op } = require('sequelize');
 const cron = require('node-cron');
 const { Subscription } = require('../models/Subscription');
 const weatherService = require('../services/weatherService');
@@ -50,3 +51,20 @@ const CRON_TEST = '* * * * *';
 //     await sendUpdateEmail(sub);
 //   }
 // });
+
+const CRON_CLEANUP = '0 3 * * *'; // every day at 03:00 AM
+
+cron.schedule(CRON_CLEANUP, async () => {
+  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+  const deleted = await Subscription.destroy({
+    where: {
+      confirmed: false,
+      createdAt: { [Op.lt]: cutoff },
+    },
+  });
+
+  if (deleted > 0) {
+    console.log(`[CLEANUP] Deleted ${deleted} unconfirmed subscriptions`);
+  }
+});
