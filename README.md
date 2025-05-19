@@ -14,7 +14,7 @@ Deployed on [Render.com](https://render.com/)
 
 ## 🎥 Video Demo
 
-📺 [Watch the demo video here](https://youtu.be/your-demo-link)
+📺 [Watch the demo video here](https://www.loom.com/share/5a7c0c203c6c4079a39a3f2cb234b671?sid=5371a429-b7da-4f5a-a936-3beefd9cbe55)
 
 ---
 
